@@ -6,7 +6,14 @@
 				"priority": 50
 			},
 			{
-				"function": "powerline.segments.common.sys.system_load",
+				"function": "powerline.segments.common.vcs.branch",
+				"args": {
+					"status_colors": true
+				},
+				"priority": 50
+			},
+			{
+				"function": "powerline.segments.common.vcs.kube",
 				"priority": 50
 			},
 			{

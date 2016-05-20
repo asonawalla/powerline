@@ -5,7 +5,6 @@ from powerline.lib.vcs import guess, tree_status
 from powerline.segments import Segment, with_docstring
 from powerline.theme import requires_segment_info, requires_filesystem_watcher
 
-
 @requires_filesystem_watcher
 @requires_segment_info
 class BranchSegment(Segment):
@@ -44,19 +43,18 @@ branch = with_docstring(BranchSegment(),
 '''Return the current VCS branch.
 
 :param bool status_colors:
-	Determines whether repository status will be used to determine highlighting. 
+	Determines whether repository status will be used to determine highlighting.
 	Default: False.
 :param bool ignore_statuses:
-	List of statuses which will not result in repo being marked as dirty. Most 
-	useful is setting this option to ``["U"]``: this will ignore repository 
-	which has just untracked files (i.e. repository with modified, deleted or 
-	removed files will be marked as dirty, while just untracked files will make 
-	segment show clean repository). Only applicable if ``status_colors`` option 
+	List of statuses which will not result in repo being marked as dirty. Most
+	useful is setting this option to ``["U"]``: this will ignore repository
+	which has just untracked files (i.e. repository with modified, deleted or
+	removed files will be marked as dirty, while just untracked files will make
+	segment show clean repository). Only applicable if ``status_colors`` option
 	is True.
 
 Highlight groups used: ``branch_clean``, ``branch_dirty``, ``branch``.
 ''')
-
 
 @requires_filesystem_watcher
 @requires_segment_info
@@ -87,3 +85,35 @@ stash = with_docstring(StashSegment(),
 
 Highlight groups used: ``stash``.
 ''')
+
+# Hack stuff to get kubernetes context
+
+import os
+
+CONFIG_FILE = os.path.join(os.environ['HOME'], ".kube", "config")
+CONTEXT_MATCH = "current-context:"
+
+class KubeContextSegment(Segment):
+
+	@staticmethod
+	def get_current_context(config_file, context_match):
+		try:
+			with open(config_file, 'rb') as f:
+				for line in f.readlines():
+					if context_match in line:
+						return line.replace(context_match, "").strip()
+				return "unknown"
+		except IOError:
+			return "cant read config"
+
+	def __call__(self, pl):
+		return [{
+			'contents': self.get_current_context(CONFIG_FILE, CONTEXT_MATCH),
+			'highlight_groups': ['branch_clean'],
+			'divider_highlight_group': None
+		}]
+
+kube = with_docstring(KubeContextSegment(),
+'''Return the current Kubernetes context
+''')
+
